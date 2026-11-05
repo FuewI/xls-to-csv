@@ -1,0 +1,7 @@
+node_modules
+dist
+.DS_Store
+
+# Real order files contain company data (names, VAT numbers, addresses) — keep them out of the public repo.
+*.xls
+*.xlsx
