@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // GitHub Pages serves the site from /<repository-name>/.
-// The deploy workflow sets BASE_PATH automatically (e.g. "/xls-to-csv/");
+// The deploy workflow sets BASE_PATH automatically (here "/xls_to_csv/");
 // locally it falls back to "/" so `npm run dev` keeps working unchanged.
 const base = process.env.BASE_PATH || '/'
 

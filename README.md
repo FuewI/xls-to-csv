@@ -33,15 +33,15 @@ The site deploys automatically with GitHub Actions ([.github/workflows/deploy.ym
 
 ### One-time setup
 
-1. Create a repository on GitHub, e.g. `xls-to-csv`, and push this project to the `main` branch.
+1. Create a repository on GitHub, `FuewI/xls_to_csv`, and push this project to the `main` branch.
 2. In the repository, open **Settings → Pages**.
 3. Under **Build and deployment → Source**, choose **GitHub Actions**.
 4. Open the **Actions** tab. The "Deploy to GitHub Pages" workflow runs on the next push; re-run it if it ran before Pages was enabled.
-5. When it finishes, the site is live at `https://<your-username>.github.io/<repository-name>/`. The link is also shown on the workflow run.
+5. When it finishes, the site is live at **https://fuewi.github.io/xls_to_csv/**. The link is also shown on the workflow run.
 
 ### How it works
 
-- **Base path:** `actions/configure-pages` reports where Pages serves the site, and the workflow passes it to Vite as `BASE_PATH`, e.g. `/xls-to-csv/`. Renaming the repository therefore needs no code change. A `<user>.github.io` repository or a custom domain gets `/`. Locally `BASE_PATH` is unset, so `npm run dev` uses `/`.
+- **Base path:** `actions/configure-pages` reports where Pages serves the site, and the workflow passes it to Vite as `BASE_PATH`, here `/xls_to_csv/`. Renaming the repository therefore needs no code change. A `<user>.github.io` repository or a custom domain gets `/`. Locally `BASE_PATH` is unset, so `npm run dev` uses `/`.
 - **No 404 on refresh:** this is a single page without client-side routes. The workflow also copies `index.html` to `404.html`, so any unknown URL under the site still loads the app instead of GitHub's 404 page. `.nojekyll` is added so Pages serves the files as they are.
 - **Client-side only:** GitHub Pages hosts static files only. Uploading, parsing, CSV and XLSX generation and downloads all run in the browser, and order files never leave the computer.
 - **Tests:** the workflow runs `npm test` before building, and a failing test stops the deploy.
