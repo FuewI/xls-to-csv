@@ -88,6 +88,10 @@ export default function App() {
   }
 
   const csvFileName = useMemo(() => buildFileName(shopName, category), [shopName, category])
+  const missingCodeCount = useMemo(
+    () => (result ? result.products.filter((p) => !p.code).length : 0),
+    [result],
+  )
   const xlsxFileName = useMemo(() => buildFileName(shopName, category, 'xlsx'), [shopName, category])
   // Preview shows data rows only — the "sep=;" directive is not a data row.
   const csvPreviewRows = useMemo(
@@ -164,7 +168,16 @@ export default function App() {
                 <Info label="Оригинален файл" value={fileName} />
                 <Info
                   label="Брой продукти"
-                  value={<span className="text-xl font-semibold text-blue-700">{result.products.length}</span>}
+                  value={
+                    <>
+                      <span className="text-xl font-semibold text-blue-700">{result.products.length}</span>
+                      {missingCodeCount > 0 && (
+                        <span className="ml-2 text-sm text-slate-500">
+                          (от тях {missingCodeCount} без код на доставчика — колона A остава празна)
+                        </span>
+                      )}
+                    </>
+                  }
                 />
                 <Info
                   label="Колони в Excel"
@@ -324,7 +337,13 @@ export default function App() {
                     {result.products.slice(0, PREVIEW_LIMIT).map((p, i) => (
                       <tr key={i} className="hover:bg-blue-50/40">
                         <td className="px-4 py-2 text-slate-400">{i + 1}</td>
-                        <td className="px-4 py-2 font-mono text-slate-900">{p.code}</td>
+                        <td className="px-4 py-2 font-mono text-slate-900">
+                          {p.code || (
+                            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-sans text-xs text-slate-500">
+                              без код
+                            </span>
+                          )}
+                        </td>
                         <td className="px-4 py-2 text-slate-300">—</td>
                         <td className="px-4 py-2 text-right font-mono text-slate-900">{p.qty}</td>
                       </tr>

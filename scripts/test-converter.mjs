@@ -166,5 +166,55 @@ test('file name extensions', () => {
   assert.equal(buildFileName('Шоп', ''), 'Шоп.csv')
 })
 
+// Same layout as the real orders (№, Код, Баркод, Име, МЕ, Код на дост., Пакетаж, Кол.)
+const orderWithGaps = () => toXls([
+  ['ЗАЯВКА N 1/01.01.2026'],
+  ['Магазин за доставка: Тест'],
+  [],
+  ['№', 'Код', 'Баркод', 'Име', 'МЕ', 'Код на дост.', 'Пакетаж', 'Кол.'],
+  [1, '207573', '3800106204053', 'Сирене 500гр', 'БР', '3800106204053', 18, 5],
+  [2, '212234', '3800106201000', 'Продукт без код', 'БР', '', 24, 10],
+  [],
+  [3, '212241', '3800106201069', 'Кашкавал', 'БР', '3800106201069', 0, 3],
+  [4, '212250', '', 'Нулево количество', 'БР', '0042', 1, 0],
+  [5, '212260', '', 'Без код и нула', 'БР', null, 1, 0],
+  [null, null, null, null, null, null, null, 18], // unlabeled total of quantities
+  ['Общо: 135.46'],
+])
+
+test('rows with quantity but no supplier code are kept, in order, with empty A', () => {
+  const r = parseOrderWorkbook(orderWithGaps())
+  assert.deepEqual(r.products.map((p) => [p.code, p.qty, p.row]), [
+    ['3800106204053', '5', 5],
+    ['', '10', 6],
+    ['3800106201069', '3', 8],
+    ['0042', '0', 9],
+    ['', '0', 10],
+  ])
+  assert.equal(r.warnings.length, 0)
+  assert.deepEqual(buildCsvRows(r.products, 'excel'), [
+    '3800106204053;;5', ';;10', '3800106201069;;3', '0042;;0', ';;0',
+  ])
+  assert.equal(
+    buildCsv(r.products, 'standard'),
+    '3800106204053,,5\r\n,,10\r\n3800106201069,,3\r\n0042,,0\r\n,,0\r\n',
+  )
+  // Total rows are still skipped
+  assert.ok(r.skipped.some((x) => x.row === 11 && /обобщен/i.test(x.reason)))
+  assert.ok(r.skipped.some((x) => x.row === 12))
+})
+
+test('XLSX: missing supplier code leaves A truly empty, quantity stays on its row', () => {
+  const r = parseOrderWorkbook(orderWithGaps())
+  const ws = XLSX.read(buildXlsxBytes(r.products), { type: 'array' }).Sheets['Поръчка']
+  assert.equal(ws.A1.v, '3800106204053')
+  assert.equal(ws.A2, undefined)
+  assert.equal(ws.C2.v, 10)
+  assert.equal(ws.A3.v, '3800106201069')
+  assert.equal(ws.C3.v, 3)
+  assert.equal(ws.A4.v, '0042')
+  assert.equal(ws.C5.v, 0)
+})
+
 if (failed) { console.error(`\n${failed} test(s) failed`); process.exit(1) }
 console.log('\nAll tests passed')

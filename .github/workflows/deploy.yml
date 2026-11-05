@@ -38,7 +38,7 @@ jobs:
       - name: Run converter tests
         run: npm test
 
-      - name: Build (base path /excel-to-csv/ is set in vite.config.js)
+      - name: Build (base path /xls-to-csv/ is set in vite.config.js)
         run: npm run build
 
       - name: Add SPA fallback (404.html) and disable Jekyll

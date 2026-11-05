@@ -259,15 +259,17 @@ function extractProducts(model, header) {
     }
 
     if (!code && q !== null) {
-      // Only numbers in the row -> most likely an unlabeled total line.
-      const hasText = cells.some((x) => x.cell && x.cell.t === 's' && qtyValue(x.cell) === null)
-      if (!hasText) {
-        skipped.push({ row: excelRow, reason: 'Вероятно обобщен ред (само числа)', text: rowText })
+      // A product without a supplier code is still a product: keep it with an empty column A.
+      // The row must describe a product (name, internal code, barcode… stored as text) somewhere
+      // outside the quantity column; a row of bare numbers is an unlabeled total line.
+      const describesProduct = cells.some(
+        (x) => (x.c < header.qtySpan[0] || x.c > header.qtySpan[1]) && x.cell && x.cell.t === 's',
+      )
+      if (describesProduct) {
+        products.push({ code: '', qty: q, row: excelRow })
+        productRowSet.add(r)
       } else {
-        warnings.push({
-          row: excelRow,
-          message: `Ред ${excelRow}: има количество ${q}, но липсва код на доставчика — редът е пропуснат.`,
-        })
+        skipped.push({ row: excelRow, reason: 'Вероятно обобщен ред (само числа)', text: rowText })
       }
       continue
     }
@@ -553,7 +555,8 @@ export function buildCsvBytes(products, format) {
 export function buildXlsxBytes(products) {
   const ws = {}
   products.forEach((p, r) => {
-    ws[XLSX.utils.encode_cell({ r, c: 0 })] = { t: 's', v: p.code, z: '@' }
+    // Missing supplier code -> no cell at all, so column A stays truly empty.
+    if (p.code) ws[XLSX.utils.encode_cell({ r, c: 0 })] = { t: 's', v: p.code, z: '@' }
     const n = Number(p.qty)
     ws[XLSX.utils.encode_cell({ r, c: 2 })] = Number.isFinite(n) ? { t: 'n', v: n } : { t: 's', v: p.qty }
   })
